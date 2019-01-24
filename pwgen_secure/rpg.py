@@ -2,10 +2,16 @@ import secrets
 import mmap
 import time
 import os
-
+from pprint import pprint
 
 class Rpg:
-    # Default options are all false.
+
+
+    verbosity = 0
+    password_count = 1
+
+    show_time = False
+    show_analysis = False
 
     use_upper = False
     use_lower = False
@@ -58,11 +64,9 @@ class Rpg:
                "ridiculous": "N{32}",
                "ludicrous": "N{64}",
                "painful": "N{128}",
-               "otp": "a{32}",
-               "banking": "N{16}"
-              }
+               "banking": "N{16}"}
 
-    request_is_magic = False
+    use_magic = False
 
     password_length = 16
 
@@ -75,207 +79,121 @@ class Rpg:
     password_pattern = None
     character_set = None
 
-    def __init__(self, options):
+    def __init__(self, character_class, class_option):
         self.start_time = time.time()
-        self.setup(options)
+        self.setup_generator(character_class, class_option)
 
-    def setup(self, options):
+    def setup_options(self, args):
 
-        if len(options) == 1:
-            self.show_help()
-            exit(1)
+        self.set_verbosity(args['-v'])
 
-        charater_set = options[1]
-        self.character_set = charater_set
+        if args['-d']:
+            self.verbosity = 11
+            self.log("Debug mode enabled. Verbosity = 11", 10)
+            self.log("Arguments:")
+            pprint(args)
 
-        self.request_is_magic = True if charater_set in self.recipes else False
-        if self.request_is_magic:
-            # Nothing else to do
-            return
+        self.set_count(args['-n'])
+        self.show_time = args['-t']
+        self.show_analysis = args['-a']
 
-        self.use_upper = True if "u" in charater_set else False
-        self.use_lower = True if "l" in charater_set else False
-        self.use_symbol = True if "s" in charater_set else False
-        self.use_space = True if "c" in charater_set else False
-        self.use_digits = True if "d" in charater_set else False
-        self.use_brackets = True if "b" in charater_set else False
-        self.use_minus = True if "m" in charater_set else False
-        self.use_underline = True if "n" in charater_set else False
-        self.remove_homoglyphs = True if "e" in charater_set else False
-        self.show_time = True if "t" in charater_set else False
+    def log(self, message, required_level = 1):
+        if self.verbosity < required_level:
+            return True
 
-        # Using a pattern *essentially* negates all previous options.
-        self.use_pattern = True if "p" in charater_set else False
+        print("%s" % message)
 
-        # Using "words" negates all previous options
-        self.use_words = True if "w" in charater_set else False;
+    def set_count(self, count):
+        self.password_count = 1 if count is False else int(count)
+        self.log("Password count: %s" % self.password_count)
 
-        self.debug = True if "g" in charater_set else False
+    def set_verbosity(self, level):
+        self.verbosity = 0 if level is False else int(level)
 
-        if self.debug:
-            print("use_upper: %s" % self.use_upper)
-            print("use_lower: %s" % self.use_lower)
-            print("use_symbol: %s" % self.use_symbol)
-            print("use_digits: %s" % self.use_digits)
-            print("use_space: %s" % self.use_space)
-            print("use_brackets: %s" % self.use_brackets)
-            print("use_minus: %s" % self.use_minus)
-            print("use_underline: %s" % self.use_underline)
-            print("use_pattern: %s" % self.use_pattern)
+    def class_is_magic(self, character_class):
+        for name, pattern in self.recipes.items():
+            if character_class == name:
+                self.log("Magic class detected: %s" % name)
+                self.use_magic = True
+                self.use_pattern = True
+                self.password_pattern = pattern
+                return self.use_magic
 
-        # Sanity checking
+    def setup_generator(self, character_class, class_option):
 
-        if not len(options) == 3:
-            self.error_out("You must specify a length or pattern for your password")
+        if self.class_is_magic(character_class):
+            return True
 
-        if self.use_pattern and len(options) == 2:
-            self.error_out("You've asked me to generate based on a pattern, but not pattern given.")
+        if "p" in character_class:
+            self.use_pattern = True
+            if pattern is None:
+                self.error_out("You've asked me to create a pattern based password, but failed to provide a pattern!")
+            self.password_pattern = pattern
+            return True
 
-        if self.use_pattern:
-            self.password_pattern = options[2]
-        else:
-            self.password_length = int(options[2])
+        if "w" in character_class:
+            self.use_words = True
+            return True
+
+        self.character_set = character_class
+
+        self.use_upper = True if "u" in character_class else False
+        self.use_lower = True if "l" in character_class else False
+        self.use_symbol = True if "s" in character_class else False
+        self.use_space = True if "c" in character_class else False
+        self.use_digits = True if "d" in character_class else False
+        self.use_brackets = True if "b" in character_class else False
+        self.use_minus = True if "m" in character_class else False
+        self.use_underline = True if "n" in character_class else False
+        self.remove_homoglyphs = True if "e" in character_class else False
+        self.show_time = True if "t" in character_class else False
+
+        self.log("use_upper: %s" % str(self.use_upper), 3)
+        self.log("use_lower: %s" % str(self.use_lower), 3)
+        self.log("use_symbol: %s" % str(self.use_symbol), 3)
+        self.log("use_digits: %s" % str(self.use_digits), 3)
+        self.log("use_space: %s" % str(self.use_space), 3)
+        self.log("use_brackets: %s" % str(self.use_brackets), 3)
+        self.log("use_minus: %s" % str(self.use_minus), 3)
+        self.log("use_underline: %s" % str(self.use_underline), 3)
+        self.log("use_pattern: %s" % str(self.use_pattern), 3)
 
     def error_out(self, message):
         print(message)
-        self.show_help()
+        print("Use --help to see syntax and usage.")
         exit(1)
-
-    def show_help(self):
-        print("""
-PyRPG - The Python random password generator
-
-Usage:
-prpg [character set options | magic class] [length | pattern]
-
-Character set options:
-u    Include upper case characters: A-Z
-l    Include lower case characters: a-z
-s    Include symbol characters: !@#$%^&*
-d    Include digits: 0-9
-b    Include bracket characters: {}[]()<>
-m    Include the minus character: -
-n    Include the underscore character: _
-
-Extended options:
-w    Generate a password based on words
-p    Generate the password based on the given pattern (requires the pattern argument)
-e    Exclude look-alike characters (homoglyphs): 1iIO0
-
-Fun stuff:
-t    Show how long it took to generate the passwords.
-
-For all character sets (except pattern generation, "p"), you must specify the password length as the second
-argument. For all options except w and p, the length specification will specify the string character length. For
-w (word based password), the length argument will specify the number of words in the resulting password.
-
-When p is specified, the second argument must be a pattern, not a length. (See "Pattern" below).
-
-Pattern:
-
-The pattern defines the layout of the resulting password. Each character in the pattern dictates a character
-class that will be substituted at that position in the pattern. Characters that do not represent a given character
-class will be substituted as-is.
-
-For example:
-
-  uull-dddd will result in:
-    Two upper case characters for the first two characters of the pattern, followed by:
-    Two lower case characters for the next two characters, followed by:
-    "-" followed by:
-    Four digits
-
-Use the following place holders to define your pattern:
-
-Base class place holders:
-
-u  Upper case characters: A-Z 
-l  Lower case characters: a-z
-s  Symbols: !@#$%^&*
-d  Digits: 0-9
-b  Bracket characters: {}[]()<>
-m  The minus character: -
-n  The underscore character: _
-p  Punctuation: ,.;:
-
-Combination and sub-class place holders:
-
-a  lower-case alphanumeric: a-z and 0-9
-A  Upper-case alphanumeric: A-Z and 0-9
-M  Mixed-case alphanumeric: a-z, A-Z, and 0-9
-N  Mixed-case alphanumeric + symbols: a-z, A-Z, 0-9 + !@#$%^&* 
-h  Lower case hex character: 0-9 and a-f
-H  Upper case hex character: 0-9 and A-F
-v  Lower case vowel: aeiou
-V  Upper case vowel: AEIOU
-Z  Mixed case vowel: AEIOU and aeiou
-c  Lower case consonant: bcdfghjklmnpqrstvwxyz
-C  Upper case consonant: BCDFGHJKLMNPQRSTVWXYZ
-z  Mixed case consonant: bcdfghjklmnpqrstvwxyz and BCDFGHJKLMNPQRSTVWXYZ
-
-Special placeholders
-\    Escapes the proceeding character, and tells the generator to print it "as-is".
-{n}  Print the previous character n times.
-
-Magic classes
-
-The following magic classes are short hand expressions that will create
-random passwords according to a specific recipe.
-
-    otp         Generate a base32 compliant secret for TOPT 2FA authentication
-    google      Generate Google-style app passwords e.g, ofgl ruwd ngzs iphh
-    iphone      Generate passwords that are easy to enter on the default iPhone keyboard
-    android     Generate passwords that are easy to enter on the default Android keyboard
-    pin4        Generate a random 4-digit pin
-    pin6        Generate a random 6-digit pin
-    mac         Generate a random mac address
-    banking     Generate a random password suitable for protecting bank accounts.
-    strong      Generate a strong password
-    ridiculous  Generate a ridiculous password
-    ludicrous   Generate a ludicrously strong password
-    painful     Really? Wow.
-
-EXAMPLES
-
-Random MAC address:
-
-  ./prpg.py p 'h{2}\:h{2}\:h{2}\:h{2}\:h{2}\:h{2}'
-  
-  or using a magic class
-  
-  ./prpg.py mac
-
-Random three word pass phrase:
-
-  ./prpg.py w 3
-
-For support, problems, and issues, file an issue on github:
-  https://github.com/mjmunger/pyrpg
-
-        """)
 
     def render_charset(self):
         character_set = []
 
         if self.use_upper:
+            self.log("  -> list_upper requested, adding: %s" % self.list_upper, 10)
             character_set = character_set + self.list_upper
         if self.use_lower:
+            self.log("  -> list_lower requested, adding: %s" % self.list_lower, 10)
             character_set = character_set + self.list_lower
         if self.use_symbol:
+            self.log("  -> list_symbol requested, adding: %s" % self.list_symbol, 10)
             character_set = character_set + self.list_symbol
         if self.use_digits:
+            self.log("  -> list_digits requested, adding: %s" % self.list_digits, 10)
             character_set = character_set + self.list_digits
         if self.use_space:
+            self.log("  -> list_space requested, adding: %s" % self.list_space, 10)
             character_set = character_set + self.list_space
         if self.use_brackets:
+            self.log("  -> list_brackets requested, adding: %s" % self.list_brackets, 10)
             character_set = character_set + self.list_brackets
         if self.use_minus:
+            self.log("  -> list_minus requested, adding: %s" % self.list_minus, 10)
             character_set = character_set + self.list_minus
         if self.use_underline:
+            self.log("  -> list_underline requested, adding: %s" % self.list_underline, 10)
             character_set = character_set + self.list_underline
 
         # Remove homoglpys
         if self.remove_homoglyphs:
+            self.log("Removing homoglyphs (look-alike characters): %s " % self.list_homoglyphs, 10)
             character_set = [char for char in character_set if char not in self.list_homoglyphs]
 
         self.list_final_charset = character_set
@@ -345,6 +263,7 @@ For support, problems, and issues, file an issue on github:
         return p
 
     def generate_pattern_based_password(self):
+        self.log("Generating password based on pattern: %s" % self.password_pattern, 1)
         chars = []
         repeat = 0
         last_pattern = None
@@ -388,6 +307,7 @@ For support, problems, and issues, file an issue on github:
         return "".join(chars)
 
     def generate_random_password(self):
+        self.log("Generating random password %s characters long" % self.password_length, 3)
         chars = []
         for x in range(0, self.password_length):
             chars.append(secrets.choice(self.list_final_charset))
@@ -395,6 +315,7 @@ For support, problems, and issues, file an issue on github:
         return "".join(chars)
 
     def generate_pass_phrase(self):
+        self.log("Generating passphrase", 1)
         path = os.path.abspath(os.path.dirname(__file__))
         word_list_path = os.path.join(path, 'words.txt')
 
@@ -412,8 +333,7 @@ For support, problems, and issues, file an issue on github:
                 break
             index.append(buffer)
 
-        if self.debug:
-            print("Total words in dictionary: %s " % len(index))
+        self.log("Total words in dictionary: %s " % len(index), 10)
 
         words = []
 
@@ -423,10 +343,6 @@ For support, problems, and issues, file an issue on github:
         return " ".join(words)
 
     def generate_password(self):
-
-        if self.request_is_magic:
-            self.use_pattern = True
-            self.password_pattern = self.recipes[self.character_set]
 
         if self.use_pattern:
             return self.generate_pattern_based_password()
@@ -438,7 +354,28 @@ For support, problems, and issues, file an issue on github:
 
     def render_password(self):
         self.render_charset()
-        print(self.generate_password())
+        passwords = []
+
+        for i in range(0, self.password_count):
+            passwords.append(self.generate_password())
+
+        passwords_per_row = int(80 / (self.password_length + 1))
+
+        self.log("Printing %s passwords @ %s per row." % (self.password_count, passwords_per_row), 3)
+
+        count = 0
+        row = []
+
+        for password in passwords:
+            row.append(password)
+            if count == self.password_count - 1 or len(row) == passwords_per_row:
+                self.log("Rowcount reached. Printing row.", 10)
+                print(" ".join(row))
+                row = []
+            count = count + 1
+
+
+
 
         if self.show_time:
             print("\nPassword generated in %s seconds" % (time.time() - self.start_time))
