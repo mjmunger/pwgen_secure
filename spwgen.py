@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-usage: spwgen [ -v ... ] [options] [<class>] [<class-option>]
+usage: spwgen [ -v ... ] [options] <class> [<class-option>]
 
 options:
     -v          Be verbose.
@@ -108,7 +108,6 @@ classes:
             2. Two lower case characters for the next two characters, followed by:
             3. "-" followed by:
             4. Four digits
-
 
 """
 from docopt import docopt

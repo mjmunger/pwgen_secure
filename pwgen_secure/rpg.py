@@ -3,6 +3,7 @@ import mmap
 import time
 import os
 from pprint import pprint
+from pwgen_secure.search_space_calculator import SearchSpaceCalculator
 
 class Rpg:
 
@@ -104,7 +105,7 @@ class Rpg:
         print("%s" % message)
 
     def set_count(self, count):
-        self.password_count = 1 if count is False else int(count)
+        self.password_count = 1 if count is None else int(count)
         self.log("Password count: %s" % self.password_count)
 
     def set_verbosity(self, level):
@@ -374,8 +375,14 @@ class Rpg:
                 row = []
             count = count + 1
 
+        if self.show_analysis:
+            if self.password_count > 1:
+                print("\nYou have requested analysis on more than one password (You set -n to a value greater than 1)")
+                print("Analysis on all these passwords produces too much output, so, this data is for the first")
+                print("password generated in this set.")
 
-
+            calc = SearchSpaceCalculator(passwords[0])
+            calc.evaluate()
 
         if self.show_time:
-            print("\nPassword generated in %s seconds" % (time.time() - self.start_time))
+            print("\nPassword generated in %s seconds" % (round(time.time() - self.start_time,6)))
