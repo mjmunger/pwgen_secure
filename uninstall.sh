@@ -6,3 +6,4 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 update-alternatives --remove-all pwgen
+update-alternatives --remove-all spwgen

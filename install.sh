@@ -26,3 +26,6 @@ fi
 
 update-alternatives --install /usr/local/bin/pwgen pwgen ${SPWGENPATH} 10
 update-alternatives --set pwgen ${SPWGENPATH}
+
+update-alternatives --install /usr/local/bin/spwgen spwgen ${SPWGENPATH} 10
+update-alternatives --set spwgen ${SPWGENPATH}
