@@ -6,7 +6,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 PWGENPATH=/usr/bin/pwgen
-SPWGENPATH=/usr/local/bin/spwgen
+SPWGENPATH=$(pwd)/spwgen.py
 
 while getopts ":p:" opt; do
   case $opt in

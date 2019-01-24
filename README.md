@@ -17,12 +17,12 @@ For your copy / paste pleasure.
 
 ```
 sudo su
+pip install pwgen_secure docopt
 cd /usr/src/
 git clone https://github.com/mjmunger/pwgen_secure
 cd pwgen_secure
 chmod +x ./install.sh
 ./install.sh
-exit
 ```
 
 ### Usage

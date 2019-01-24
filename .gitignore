@@ -1,2 +1,5 @@
 .idea/*
 __pycache__/*
+pwgen_secure.egg-info/*
+build/*
+dist/*
