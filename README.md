@@ -1,21 +1,61 @@
-# PyRPG - Secure Python random password generator
+# pwgen_secure - Secure Python random password generator
 
 Generate cryptographically secure random passwords with specified character sets, patterns, or lengths.
 
 ## Quickstart: How do I make passwords?
 
-You have two tools: rpg and frpg.
-1. `rpg` generates a random password at the command line.
-1. `frpg` reads a file, and replaces instances of `#RND#` with a securely generated password. 
+### Installation
+
+pwgen_secure requires Python 3.6 above because it uses the `secrets` module for cryptographically secure random numbers.
+("cryptographically secure" is a relative term. Read the *Security* section below).
+
+If you do not have Python 3.6, you can download and install it from [python.org](https://www.python.org/downloads/).
+
+### Installation script
+
+For your copy / paste pleasure. 
+
+```
+sudo su
+cd /usr/src/
+git clone https://github.com/mjmunger/pwgen_secure
+cd pwgen_secure
+chmod +x ./install.sh
+./install.sh
+exit
+```
+
+### Usage
+
+You have two tools: spwgen and fpwgen.
+1. `spwgen` generates a random password at the command line.
+1. `fpwgen` reads a file, and replaces instances of `#RND#` with a securely generated password. 
+
+## But why?
+
+### Secure by default
+By default, pwgen creates passwords easy for a human to memorize. You have to use the `-s` option to get secure
+passwords. `pwgen_secure` generates secure passwords *by default* ... because users rarely rtfm, and usually use
+default settings.
+
+### Flexible
+
+`pwgen` is not flexible. Want to generate random mac addresses? Can't. Need some other pattern? Can't.
+`pwgen_secure` can.
+
+### Uses the `secrets` module
+
+The secrets module automatically uses the best source of randomness available on your system, which gives us the best
+chance and making secure passwords. (See "Cryptographically secure" below). 
 
 ### Usage:
 
 ```
-rpg [character set options | magic class] [length | pattern]
+spwgen [character set options | magic class] [length | pattern]
 ```
 and 
 ```
-frpg /path/to/file [character set options | magic class] [length | pattern]
+fpwgen /path/to/file [character set options | magic class] [length | pattern]
 ```
 
 ### Examples
@@ -24,18 +64,18 @@ Here are examples for you, Captain Impatient...
 #### Random password for a website, and show the timing
 
 ```
-rpg slut 16
+spwgen slut 16
 ```
 
 #### Random MAC address:
 ```
-rpg p 'h{2}:h{2}:h{2}:h{2}:h{2}:h{2}' 
+spwgen p 'h{2}:h{2}:h{2}:h{2}:h{2}:h{2}' 
 ```
 
 ...or using a magic class
 
 ```
-rpg mac
+spwgen mac
 ```
 
 #### Create passwords in a file where the #RND# placeholder is
@@ -43,52 +83,52 @@ rpg mac
 Use the `strong` magic class
 
 ```
-frpg /path/to/file strong
+sfpwgen /path/to/file strong
 ``` 
 
 Do it the hard way:
 
 ```
-frpg /path/to/file ul 21
+sfpwgen /path/to/file ul 21
 ```
 
 Make crappy passwords in the file:
 
 ```
-frpg /path/to/file d{4}
+sfpwgen /path/to/file d{4}
 ```
 
 Make your users sorry they were ever born:
 
 ```
-frpg /path/to/file painful
+sfpwgen /path/to/file painful
 ```
 #### Random three word pass phrase:
 ```
-rpg w 3
+spwgen w 3
 ```
 
 #### Create a google-style password:
 
 ```
-rpg google
+spwgen google
 ```
 
-#### Create one that's strong and easy to do ona  phone
+#### Create one that's strong and easy to do on a phone
 ```
-rpg iphone
+spwgen iphone
 ```
 
 or
 
 ```
-rpg android
+spwgen android
 ```
 
 #### Escape the h so it starts with h
 
 ```
-rpg p '\hu{12}' 
+spwgen p '\hu{12}' 
 ```
 
 #### Character set options:
@@ -192,34 +232,14 @@ ludicrous   Generate a ludicrously strong password
 painful     Really? Wow. 
 ```
 
-# Security
-
-"Cryptographically secure" is a somewhat relative term. The secrets module actually "[...provides access to the most secure source of randomness that your operating system provides](https://docs.python.org/3/library/secrets.html#random-numbers)". Thus, if you do not have a good source of randomness on your computer, you will not get good secure numbers. This is entirely dependent on [your chipset](https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide).
-
 # Support and Issues
 
 For support, problems, and issues, file an issue on github:
-  https://github.com/mjmunger/pyrpg 
+  https://github.com/mjmunger/pwgen_secure 
 
-## Installation
+# Security
 
-PyRPG requires Python 3.6 above because it uses the `secrets` module for cryptographically secure random numbers*.
-
-If you do not have Python 3.6, you can download and install it from [python.org](https://www.python.org/downloads/).
-
-### Installation script
-
-For your copy / paste pleasure. 
-
-```
-sudo su
-cd /usr/src/
-git clone https://github.com/mjmunger/pyrpg.git
-cd pyrpg
-chmod +x ./install.sh
-./install.sh
-exit
-```
+"Cryptographically secure" is a somewhat relative term. The secrets module actually "[...provides access to the most secure source of randomness that your operating system provides](https://docs.python.org/3/library/secrets.html#random-numbers)". Thus, if you do not have a good source of randomness on your computer, you will not get good secure numbers. This is entirely dependent on [your chipset](https://software.intel.com/en-us/articles/intel-digital-random-number-generator-drng-software-implementation-guide).
 
 ### Debian specific installation of Python 3.6.
 
@@ -247,3 +267,7 @@ Secrets is part of the core library as of v3.6, so there is nothing else to inst
 * Pattern functions based on [Keepass password generator](https://keepass.info/help/base/pwgenerator.html)
 * mmap usage for words.txt based on [Python fastest way to process large file](https://stackoverflow.com/questions/30294146/python-fastest-way-to-process-large-file)
 * English words list provided by [dwyl/englishwords](https://github.com/dwyl/english-words)
+
+## Acknowledgements
+
+Thank you to [Theodore Ts'o](https://en.wikipedia.org/wiki/Theodore_Ts%27o) for his various contributions to the Linux project, including [pwgen](https://github.com/tytso/pwgen), [e2fsprogs](https://en.wikipedia.org/wiki/E2fsprogs), and [ext4 file system](https://en.wikipedia.org/wiki/Ext4), which are things we all use every day. Theodore Ts'o is imminently qualified to write the original pwgen, and this project hopes to follow in it's footsteps.
