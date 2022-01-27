@@ -66,9 +66,9 @@ classes:
 
     pattern classes:
 
-        Pattern classes generate passwords based on the user specified pattern. The pattern defines the layout of the
-        resulting password. Each character in the pattern dictates a character class that will be substituted at that
-        position in the pattern.
+        Pattern classes generate passwords based on the user specified pattern. Pattern classes MUST start with a `p`.
+        The pattern defines the layout of the resulting password. Each character in the pattern dictates a character
+        class that will be substituted at that position in the pattern.
 
         Characters that do not represent a specific character class will be substituted as-is.
 
@@ -103,7 +103,7 @@ classes:
             {n}  Print the previous character n times.
 
         Example:
-            `uull-dddd` will result in:
+            `puull-dddd` will result in:
             1. Two upper case characters for the first two characters of the pattern, followed by:
             2. Two lower case characters for the next two characters, followed by:
             3. "-" followed by:

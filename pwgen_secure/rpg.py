@@ -126,6 +126,7 @@ class Rpg:
             return True
 
         if "p" in character_class:
+            pattern = character_class[1:len(character_class)]
             self.use_pattern = True
             if pattern is None:
                 self.error_out("You've asked me to create a pattern based password, but failed to provide a pattern!")
@@ -345,6 +346,7 @@ class Rpg:
 
     def generate_password(self):
 
+        self.log("Use pattern: %s" % self.use_pattern)
         if self.use_pattern:
             return self.generate_pattern_based_password()
 
