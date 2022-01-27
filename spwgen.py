@@ -8,6 +8,7 @@ options:
     -t          Show how long it took to generate that password.
     -n=<count>  Generate n passwords.
     -a          Show strength analysis of the generated password
+    -s          Show passwords in a single column instead of multiple columns (default)
 
 classes:
 

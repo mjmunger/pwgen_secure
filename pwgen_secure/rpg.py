@@ -13,6 +13,7 @@ class Rpg:
 
     show_time = False
     show_analysis = False
+    single_column = False
 
     use_upper = False
     use_lower = False
@@ -87,6 +88,9 @@ class Rpg:
     def setup_options(self, args):
 
         self.set_verbosity(args['-v'])
+
+        if args['-s']:
+            self.single_column = True
 
         if args['-d']:
             self.verbosity = 11
@@ -370,11 +374,14 @@ class Rpg:
         row = []
 
         for password in passwords:
-            row.append(password)
-            if count == self.password_count - 1 or len(row) == passwords_per_row:
-                self.log("Rowcount reached. Printing row.", 10)
-                print(" ".join(row))
-                row = []
+            if self.single_column:
+                print(password)
+            else:
+                row.append(password)
+                if count == self.password_count - 1 or len(row) == passwords_per_row:
+                    self.log("Rowcount reached. Printing row.", 10)
+                    print(" ".join(row))
+                    row = []
             count = count + 1
 
         if self.show_analysis:
